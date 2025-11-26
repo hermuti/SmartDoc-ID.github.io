@@ -1,0 +1,1018 @@
+{
+  "name": "final",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "85e424d3-9461-4d29-826c-00751c6df08d",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2704,
+        800
+      ],
+      "webhookId": "fac7303c-2164-4ed7-baa7-368aa167d212",
+      "credentials": {
+        "telegramApi": {
+          "id": "Ufog5ZjyvqMM6Bta",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User message: {{ $('Telegram Trigger').item.json.message.text }}\nChat ID: {{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "options": {
+          "systemMessage": "You are a helpful registration assistant for an Amharic-speaking community. Your task is to guide users through a 7-question registration process in Amharic.\n\nIMPORTANT INSTRUCTIONS:\n1. When a user first contacts you (no conversation history), greet them with: 'እንኳን ደህና መጡ! ስሜ የመታወቂያ መመዝገቢያ ማዕከል ነው። ከቀበሌ አገልግሎት ማግኘት የሚፈልጉ ተጠቃሚዎችን እመዘግባለሁ እና ቀጠሮ እሰጣቸዋለሁ።' Then immediately ask the first question.\n2. Ask questions ONE AT A TIME - wait for the user to answer before asking the next question\n3. Provide clear format examples in Amharic for each question\n4. Validate each answer before moving to the next question - BE FLEXIBLE with validation\n5. If an answer is invalid, explain the correct format and ask again\n6. Keep track of all answers in the conversation\n7. After collecting all 7 answers, confirm the complete registration with the user\n8. When you need to communicate in English but want to ensure the user understands, use the Translation Tool to translate your message to Amharic. The Translation Tool is optional - use it only when you think translation would help avoid miscommunication.\n\nSPECIAL COMMANDS:\n- If user types 'summary' or 'ማጠቃለያ' at any time, show all collected answers so far in a clear format WITHOUT asking for confirmation. Then continue from where you left off.\n\nTHE 7 QUESTIONS (ask in this order):\n\n1. **Name (ስም)**\n   - Ask: እባክዎ ሙሉ ስምዎን ያስገቡ (ምሳሌ: አበበ ከበደ)\n   - Validate: Must have at least first and last name\n\n2. **Date of Birth (የትውልድ ቀን)**\n   - Ask: የትውልድ ቀንዎን በዚህ ቅርጸት ያስገቡ: DD/MM/YYYY (ምሳሌ: 15/03/1990)\n   - Validate: Must be in DD/MM/YYYY format\n\n3. **FIN Number (የFIN ቁጥር)**\n   - Ask: የFIN ቁጥርዎን ያስገቡ - 12 አሃዞች ብቻ (ምሳሌ: 123456789012)\n   - Validate: Must be exactly 12 digits\n\n4. **Sub-city (ንዑስ ከተማ)**\n   - Ask: ንዑስ ከተማዎን ከሚከተሉት ውስጥ ይምረጡ:\n1. አዲስ ከተማ\n2. አቃቂ ቃሊቲ\n3. ቦሌ\n4. ጉለሌ\n5. ኮልፌ ቀራኒዮ\n6. ሊዳታ\n7. ንፋስ ስልክ ላፍቶ\n8. የካ\n9. ቂርቆስ\n10. ለሚ ኩራ\n11. አራዳ\n\nቁጥሩን ወይም ስሙን ያስገቡ\n   - Validate: BE FLEXIBLE - Accept '3', 'ቦሌ', '3. ቦሌ', or any format that clearly indicates one of the 11 sub-cities. If the answer contains the required information, accept it.\n\n5. **Woreda (ወረዳ)**\n   - Ask: ወረዳዎን ያስገቡ (ምሳሌ: ወረዳ 01)\n   - Validate: BE FLEXIBLE - Accept 'ወረዳ 06', '06', 'woreda 06', or any non-empty value that indicates a woreda. If the answer contains the required information, accept it.\n\n6. **House Number (የቤት ቁጥር)**\n   - Ask: የቤት ቁጥርዎን ያስገቡ (ምሳሌ: 123)\n   - Validate: BE FLEXIBLE - Accept any non-empty value including numbers, letters, slashes (like 123/45, A-123, etc.). If the answer is not empty, accept it.\n\n7. **Service Type (የአገልግሎት አይነት)**\n   - Ask: የሚፈልጉትን አገልግሎት ይምረጡ:\n1) አዲስ (New)\n2) አድስ (Renewal)\n3) የጠፋ (Lost/Replacement)\n\nቁጥሩን ወይም ስሙን ያስገቡ\n   - Validate: BE FLEXIBLE - Accept '1', 'አዲስ', '1) አዲስ', 'New', '2', 'አድስ', 'Renewal', '3', 'የጠፋ', 'Lost', 'Replacement', or any format that clearly indicates one of the 3 service types. If the answer contains the required information, accept it and normalize it to the full service name in Amharic.\n\nAFTER ALL 7 QUESTIONS:\n- Summarize all collected information in Amharic\n- Ask user to confirm: እባክዎ መረጃዎን ያረጋግጡ። ትክክል ነው? (አዎ/አይደለም)\n- If not confirmed, ask which field needs correction\n\nCRITICAL - When user confirms registration (says አዎ/yes), first output a confirmation message in Amharic: 'እሺ! ምዝገባዎ እየተሰራ ነው። እባክዎ ትንሽ ይጠብቁ...' and then on a new line output the JSON object. For serviceType field, output the FULL SERVICE NAME in Amharic based on what the user selected: 'አዲስ (New)' for option 1/New, 'አድስ (Renewal)' for option 2/Renewal, or 'የጠፋ (Lost/Replacement)' for option 3/Lost. Output format: {\"name\": \"user's name\", \"dateOfBirth\": \"DD/MM/YYYY\", \"finNumber\": \"12 digits\", \"subCity\": \"selected sub-city\", \"woreda\": \"woreda\", \"houseNumber\": \"house number\", \"serviceType\": \"full service name in Amharic\"}. Store the user's answers EXACTLY as they provided them for all other fields - do not modify, translate, or change any values except for serviceType which should be normalized to the full Amharic name."
+        }
+      },
+      "id": "92b09d0b-50df-4704-967c-15afb4a3553c",
+      "name": "Registration Bot",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -2208,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 50
+      },
+      "id": "0862aa3a-9fc6-4034-97f7-bdbea9d71eb5",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2128,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "name",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "chatId",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "userId",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "username",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "82b4ded7-c75f-4104-8379-4ab6ca27b443",
+      "name": "Format Registration Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1568,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Translates English text to Amharic to ensure clear communication with users",
+        "method": "POST",
+        "url": "https://api.mymemory.translated.net/get",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $fromAI('text_to_translate', 'The English text to translate to Amharic', 'string') }}"
+            },
+            {
+              "name": "langpair",
+              "value": "en|am"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a4dcbcef-53bd-447a-aeb0-aec905977250",
+      "name": "Translation Tool (EN to AM)",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        -2000,
+        1024
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "Name",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).name; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "Date of Birth",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).dateOfBirth; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "FIN Number",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).finNumber; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "Sub-city",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).subCity; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "Woreda",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).woreda; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "House Number",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).houseNumber; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "Service Type",
+              "value": "={{ (() => { const output = $json.output; const jsonStart = output.indexOf('{'); const jsonPart = jsonStart >= 0 ? output.substring(jsonStart) : output; return JSON.parse(jsonPart).serviceType; })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8773faf2-1d3c-4e1c-87c8-04b25efd8f90",
+      "name": "Extract Registration Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1344,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "id": "7514f639-5996-4a3f-b8a7-82d7e58fb6dc",
+      "name": "Send Telegram Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1792,
+        896
+      ],
+      "webhookId": "46f23350-4fe0-47aa-a933-cb277013014f",
+      "credentials": {
+        "telegramApi": {
+          "id": "Ufog5ZjyvqMM6Bta",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2b6b043206e1804d936bcdc01b6a2c5d",
+          "mode": "id"
+        },
+        "title": "User Session",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "=User Name|title",
+              "title": "={{ $json.Name }}"
+            },
+            {
+              "key": "=Fayda FIN number|number",
+              "numberValue": "={{ Number($json['FIN Number']) }}"
+            },
+            {
+              "key": "=BOD|rich_text",
+              "textContent": "={{ $json['Date of Birth'] }}"
+            },
+            {
+              "key": "=Sub City|select",
+              "selectValue": "={{ $json[\"Sub-city\"] }}"
+            },
+            {
+              "key": "=woreda|rich_text",
+              "textContent": "={{ $json.Woreda }}"
+            },
+            {
+              "key": "=House number|rich_text",
+              "textContent": "={{ $json['House Number'] }}"
+            },
+            {
+              "key": "=Selected service type|select",
+              "selectValue": "={{ $json[\"Service Type\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -1120,
+        704
+      ],
+      "id": "3cd87f46-0019-4590-9701-86ead885c429",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.addisassistant.com/api/v1/chat_generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "sk_437ab080-48a1-4b3f-a447-ed076c365af9_3a6551310b8441a40a4b3933e44a95f2d2cf02486d842378819d85399d839a24"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"{{ $json.message.text }}\",\n  \"user_id\": \"{{ $json.message.chat.id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2480,
+        800
+      ],
+      "id": "dccb36f3-9fb4-4892-b7ea-8d0545b70d1e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "{",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "463c9d43-bdb2-4da8-befa-f155b27c858b",
+      "name": "Check if JSON Output",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1792,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "2b6b043206e1804d936bcdc01b6a2c5d"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        704
+      ],
+      "id": "3ef4da01-bd86-459b-a29c-fe357188d6b1",
+      "name": "Get a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "Service Type",
+              "value": "={{ $json.property_selected_service_type }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "Name",
+              "value": "={{ $json.property_user_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "Date of Birth",
+              "value": "={{ $json.property_bod }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "FIN Number",
+              "value": "={{ $json.property_fayda_fin_number }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "Sub-city",
+              "value": "={{ $json.property_sub_city }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "Woreda",
+              "value": "={{ $json.property_woreda }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "House Number",
+              "value": "={{ $json.property_house_number }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "df3cee1d-8d55-4b24-bf97-5794bd96ec10",
+      "name": "Extract Service Type Field",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "New",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "አዲስ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "or"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "Renewal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "አድስ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "Renew",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "እድሳት",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "or"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "Lost",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "የጠፋ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json['Service Type'] }}",
+                    "rightValue": "Replacement",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "or"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ab80c9b9-2a04-4253-87eb-8d69c3210aa6",
+      "name": "Route by Service Type1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -448,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Calculate next available appointment slot based on service type and priority\nconst item = $input.item.json;\nconst serviceType = item.serviceType || item.service_type || item.service_required || 'New ID';\n\n// Get priority data from Priority Scheduling Logic node\nconst priorityData = $('Priority Scheduling Logic1').item.json;\nconst priorityScores = priorityData.priorityScores || {};\nconst serviceCounts = priorityData.serviceCounts || {};\n\n// Get priority score for current service type\nconst priorityScore = priorityScores[serviceType] || 0.5;\n\n// Define appointment slot durations (in minutes) per service type\nconst slotDurations = {\n  'New ID': 30,\n  'አዲስ (New)': 30,\n  'Renewal': 20,\n  'አድስ (Renewal)': 20,\n  'Lost ID': 25,\n  'የጠፋ (Lost/Replacement)': 25\n};\n\n// Define working hours\nconst workingHours = {\n  start: 9, // 9 AM\n  end: 17   // 5 PM\n};\n\n// Get current date and time\nconst now = new Date();\nlet appointmentDate = new Date(now);\n\n// Apply priority-based scheduling\n// Higher priority score (less demand) gets earlier slots\n// Lower priority score (more demand) gets slots pushed further out\nconst priorityDelayDays = Math.max(0, Math.floor((1 - priorityScore) * 5)); // 0-5 days delay based on priority\n\n// If current time is past working hours, schedule for next day\nif (appointmentDate.getHours() >= workingHours.end) {\n  appointmentDate.setDate(appointmentDate.getDate() + 1);\n  appointmentDate.setHours(workingHours.start, 0, 0, 0);\n} else if (appointmentDate.getHours() < workingHours.start) {\n  appointmentDate.setHours(workingHours.start, 0, 0, 0);\n} else {\n  // Round up to next 30-minute slot\n  const minutes = appointmentDate.getMinutes();\n  const roundedMinutes = Math.ceil(minutes / 30) * 30;\n  appointmentDate.setMinutes(roundedMinutes, 0, 0);\n  \n  // If rounded time exceeds working hours, move to next day\n  if (appointmentDate.getHours() >= workingHours.end) {\n    appointmentDate.setDate(appointmentDate.getDate() + 1);\n    appointmentDate.setHours(workingHours.start, 0, 0, 0);\n  }\n}\n\n// Apply priority delay\nappointmentDate.setDate(appointmentDate.getDate() + priorityDelayDays);\n\n// Skip weekends\nwhile (appointmentDate.getDay() === 0 || appointmentDate.getDay() === 6) {\n  appointmentDate.setDate(appointmentDate.getDate() + 1);\n  appointmentDate.setHours(workingHours.start, 0, 0, 0);\n}\n\n// Get slot duration for service type\nconst duration = slotDurations[serviceType] || 30;\n\n// Calculate end time\nconst endTime = new Date(appointmentDate);\nendTime.setMinutes(endTime.getMinutes() + duration);\n\n// Format appointment details\nconst appointmentDetails = {\n  appointmentDate: appointmentDate.toISOString().split('T')[0],\n  appointmentTime: appointmentDate.toTimeString().split(' ')[0].substring(0, 5),\n  appointmentDateTime: appointmentDate.toISOString(),\n  appointmentEndTime: endTime.toTimeString().split(' ')[0].substring(0, 5),\n  duration: duration,\n  serviceType: serviceType,\n  priorityScore: priorityScore,\n  priorityDelayDays: priorityDelayDays,\n  serviceCounts: serviceCounts,\n  formattedDateTime: appointmentDate.toLocaleString('en-US', {\n    weekday: 'long',\n    year: 'numeric',\n    month: 'long',\n    day: 'numeric',\n    hour: '2-digit',\n    minute: '2-digit'\n  }),\n  formattedDateTimeAmharic: `${appointmentDate.toLocaleDateString('am-ET')} ${appointmentDate.toLocaleTimeString('am-ET', { hour: '2-digit', minute: '2-digit' })}`\n};\n\n// Return original item data plus appointment details\nreturn {\n  json: {\n    ...item,\n    ...appointmentDetails\n  }\n};"
+      },
+      "id": "3a3e947c-3e31-4140-b154-0126e7b83ffb",
+      "name": "Schedule Appointment1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2b6b043206e180d9be35fcaf8fbd1003",
+          "mode": "id"
+        },
+        "title": "={{ $json.property_user_name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Appointment Date|date",
+              "type": "date",
+              "includeTime": false,
+              "date": "={{ $json.appointmentDateTime }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a7affb91-3e99-41d7-b78d-44ab57ff6f21",
+      "name": "Store to Master Database1",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        608
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "2b6b043206e180b89d3bf5da617d8cf0"
+        },
+        "title": "={{ $('Extract Service Type Field').item.json.Name }}",
+        "propertiesUi": {
+          "propertyValues": []
+        },
+        "options": {}
+      },
+      "id": "9f68654f-5ecf-4f88-863e-20cbf42d191d",
+      "name": "Store New ID to Notion1",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        512
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "2b6b043206e180f3b825e588a1685401"
+        },
+        "title": "={{ $('Extract Service Type Field').item.json.Name }}",
+        "propertiesUi": {
+          "propertyValues": []
+        },
+        "options": {}
+      },
+      "id": "1b8445c3-9966-4ebd-9fdf-ec759be2143f",
+      "name": "Store Renewal to Notion1",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        704
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "2b6b043206e1807b8b4cc1474574bc2f"
+        },
+        "title": "={{ $('Extract Service Type Field').item.json.Name }}",
+        "propertiesUi": {
+          "propertyValues": []
+        },
+        "options": {}
+      },
+      "id": "5f43cb72-0da1-4064-8e9d-29106c267e0a",
+      "name": "Store Lost ID to Notion1",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        896
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "2b6b043206e1804d936bcdc01b6a2c5d"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "245ad610-0dac-4f41-80b5-c0b05f30f98a",
+      "name": "Get Service Type Counts1",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        608
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "fq1kYIusbIjsKsgL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Count service types from Get Service Type Counts node and determine priority\n// Get all items from Get Service Type Counts node\nconst allItems = $input.all();\n\n// Initialize counters for each service type\nconst serviceCounts = {\n  'አዲስ (New)': 0,\n  'አድስ (Renewal)': 0,\n  'የጠፋ (Lost/Replacement)': 0\n};\n\n// Count occurrences of each service type from all items\nfor (const item of allItems) {\n  const serviceType = item.json.service_required || item.json.serviceType || item.json.service_type || item.json['Service Type'] || item.json.property_selected_service_type;\n  \n  if (serviceType) {\n    // Normalize service type names to match the format\n    if (serviceType.includes('New') || serviceType.includes('አዲስ')) {\n      serviceCounts['አዲስ (New)']++;\n    } else if (serviceType.includes('Renewal') || serviceType.includes('አድስ') || serviceType.includes('እድሳት')) {\n      serviceCounts['አድስ (Renewal)']++;\n    } else if (serviceType.includes('Lost') || serviceType.includes('Replacement') || serviceType.includes('የጠፋ')) {\n      serviceCounts['የጠፋ (Lost/Replacement)']++;\n    }\n  }\n}\n\n// Find the service type with highest demand\nlet highestDemandService = 'አዲስ (New)';\nlet highestCount = 0;\n\nfor (const [service, count] of Object.entries(serviceCounts)) {\n  if (count > highestCount) {\n    highestCount = count;\n    highestDemandService = service;\n  }\n}\n\n// Calculate priority scores (higher count = higher priority)\n// Services with highest demand get scheduled first\nconst totalApplications = serviceCounts['አዲስ (New)'] + serviceCounts['አድስ (Renewal)'] + serviceCounts['የጠፋ (Lost/Replacement)'];\n\nconst priorityScores = {\n  'አዲስ (New)': totalApplications === 0 ? 1 : serviceCounts['አዲስ (New)'] / totalApplications,\n  'አድስ (Renewal)': totalApplications === 0 ? 1 : serviceCounts['አድስ (Renewal)'] / totalApplications,\n  'የጠፋ (Lost/Replacement)': totalApplications === 0 ? 1 : serviceCounts['የጠፋ (Lost/Replacement)'] / totalApplications\n};\n\n// Process each item and add priority information\nconst outputItems = [];\n\nfor (const item of allItems) {\n  const currentServiceType = item.json['Service Type'] || item.json.service_type || item.json.property_selected_service_type;\n  \n  // Normalize current service type\n  let normalizedServiceType = 'አዲስ (New)';\n  if (currentServiceType) {\n    if (currentServiceType.includes('New') || currentServiceType.includes('አዲስ')) {\n      normalizedServiceType = 'አዲስ (New)';\n    } else if (currentServiceType.includes('Renewal') || currentServiceType.includes('አድስ') || currentServiceType.includes('እድሳት')) {\n      normalizedServiceType = 'አድስ (Renewal)';\n    } else if (currentServiceType.includes('Lost') || currentServiceType.includes('Replacement') || currentServiceType.includes('የጠፋ')) {\n      normalizedServiceType = 'የጠፋ (Lost/Replacement)';\n    }\n  }\n  \n  // Get priority score for current item's service type\n  const currentPriorityScore = priorityScores[normalizedServiceType] || 0;\n  \n  // Add item with priority information\n  outputItems.push({\n    json: {\n      ...item.json,\n      serviceCounts: serviceCounts,\n      highestDemandService: highestDemandService,\n      highestDemandCount: highestCount,\n      priorityScores: priorityScores,\n      totalApplications: totalApplications,\n      currentServiceType: normalizedServiceType,\n      priorityScore: currentPriorityScore\n    }\n  });\n}\n\n// Return all items with priority information\nreturn outputItems;"
+      },
+      "id": "1b0fac5e-a337-452d-a310-7d420e7a4d7d",
+      "name": "Priority Scheduling Logic1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        1008
+      ],
+      "id": "a4e716fb-2ff0-48b8-ad3a-591112882449",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "dinW9UxveMux9Rom",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 92105972,
+          "message": {
+            "message_id": 196,
+            "from": {
+              "id": 6261350681,
+              "is_bot": false,
+              "first_name": "Hermi",
+              "username": "Hermi2018",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 6261350681,
+              "first_name": "Hermi",
+              "username": "Hermi2018",
+              "type": "private"
+            },
+            "date": 1764156608,
+            "text": "ፀሐይ ሜላ አላት"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Registration Bot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registration Bot": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check if JSON Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Translation Tool (EN to AM)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Registration Bot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Registration Data": {
+      "main": [
+        [
+          {
+            "node": "Extract Registration Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Registration Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if JSON Output": {
+      "main": [
+        [
+          {
+            "node": "Format Registration Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Registration Fields": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Get a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a database page": {
+      "main": [
+        [
+          {
+            "node": "Extract Service Type Field",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Service Type Field": {
+      "main": [
+        [
+          {
+            "node": "Route by Service Type1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Service Type1": {
+      "main": [
+        [
+          {
+            "node": "Store New ID to Notion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Store Renewal to Notion1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Store Lost ID to Notion1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Appointment1": {
+      "main": [
+        [
+          {
+            "node": "Store to Master Database1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store New ID to Notion1": {
+      "main": [
+        [
+          {
+            "node": "Get Service Type Counts1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Renewal to Notion1": {
+      "main": [
+        [
+          {
+            "node": "Get Service Type Counts1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Lost ID to Notion1": {
+      "main": [
+        [
+          {
+            "node": "Get Service Type Counts1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Service Type Counts1": {
+      "main": [
+        [
+          {
+            "node": "Priority Scheduling Logic1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Priority Scheduling Logic1": {
+      "main": [
+        [
+          {
+            "node": "Schedule Appointment1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Registration Bot",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0707110e-6ebd-447f-b965-52252d65a83c",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f4301ad1a380c6d7cfceb354cd70849a200541984527c520ad589d238892d08"
+  },
+  "id": "85sizFMf6D1KjP9A",
+  "tags": []
+}
